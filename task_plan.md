@@ -1,84 +1,304 @@
-# Task Plan: Handy Launcher Implementation Documentation
+﻿# Task Plan: Handy Launcher Implementation
 
-## Goal
-Create comprehensive software engineering documentation for implementing the Handy Launcher app, filling gaps between existing requirements/architecture and implementation-ready specs.
+**Goal:** Implement Handy Launcher application following the comprehensive documentation.
+
+**Approach:** Autonomous implementation with session recovery. Each phase is self-contained with clear entry/exit criteria.
+
+---
+
+## Session Recovery Checklist
+
+When resuming work:
+1. [ ] Read `IMPLEMENTATION.md` for current phase guidance
+2. [ ] Read `task_plan.md` (this file) for phase status
+3. [ ] Read `progress.md` for recent session history
+4. [ ] Run `git status` to check uncommitted work
+5. [ ] Verify environment: `rustc --version`, `bun --version`
+6. [ ] Continue from **Current Phase** below
+
+---
 
 ## Current Phase
-? All Phases Complete
 
-## Phases
+**Phase:** 6 - Testing & Debugging Framework  
+**Status:** In Progress  
+**Started:** 2026-03-17  
+**Last Session:** 2026-03-17 (Phase 6 debug panel slice implemented and verified)
 
-### Phase 1: Gap Analysis & Planning ?
-- [x] Review existing requirements-analysis.md
-- [x] Review existing system-architecture.md
-- [x] Identify documentation gaps for implementation
-- [x] Prioritize documentation based on implementation sequence
-- **Status:** completed
+---
 
-### Phase 2: API Specifications ?
-- [x] Document Ollama HTTP API integration points
-- [x] Define Tauri command interfaces (frontend ? backend) - *covered in architecture doc*
-- [x] Define error response schemas and handling patterns
-- **Status:** completed
+## Implementation Phases
 
-### Phase 3: Data Models & Schemas ?
-- [x] Configuration file schemas - *covered in architecture doc Section 7*
-- [x] Application state structures (Rust + TypeScript) - *covered in architecture doc Section 5*
-- [x] Model profile definitions - *covered in architecture doc*
-- **Status:** completed
+### Phase 0: Project Scaffold & Environment Setup
+**Duration Estimate:** 1-2 hours  
+**Dependencies:** None  
+**Goal:** Initialize Tauri project with all dependencies and folder structure
 
-### Phase 4: Component Specifications ?
-- [x] Svelte component hierarchy and props interfaces - *covered in ui-specifications.md*
-- [x] Rust backend module interfaces - *covered in architecture doc*
-- [x] State management flow (Tauri store integration) - *covered in ui-specifications.md*
-- **Status:** completed
+#### Checklist
+- [ ] Create Tauri project with Svelte+TS template
+- [ ] Install frontend dependencies (lucide-svelte, @tauri-apps/api)
+- [ ] Configure Tailwind CSS with dark mode
+- [ ] Create Rust module structure (commands/, services/, models/, utils/)
+- [ ] Configure Tauri capabilities (shell, fs, os permissions)
+- [ ] Verify `bun run tauri dev` works
 
-### Phase 5: UI/UX Specifications ?
-- [x] Setup wizard step-by-step flow (3 steps, auto-advance)
-- [x] Status dashboard layout and data refresh strategy
-- [x] Error state UI patterns and user messaging
-- [x] System tray/menubar integration specifications
-- [x] Troubleshooting mode design
-- **Status:** completed
+#### Exit Criteria
+- [ ] App launches in dev mode without errors
+- [ ] All folder structure created
+- [ ] No compiler warnings
+- [ ] Git initialized with initial commit
 
-### Phase 6: Implementation Guides ?
-- [x] Testing strategy (unit, integration, e2e) - *covered in testing.md*
-- [x] Development environment setup guide - *covered in setup.md*
-- [x] Build and packaging instructions - *covered in build.md*
-- **Status:** completed
+#### Files Created
+- `src-tauri/Cargo.toml`
+- `src-tauri/tauri.conf.json`
+- `src-tauri/src/main.rs`
+- `src-tauri/src/lib.rs`
+- Module files in `src-tauri/src/`
+- `package.json`
+- `tailwind.config.js`
 
-## Key Questions (All Answered)
-1. ? Which Ollama API endpoints are required? (pull, tags, version)
-2. ? What configuration keys must be merged into Handy's settings.json? (post_process_provider_id, base_url, model, prompt)
-3. ? How should the app handle Ollama process lifecycle? (system tray, background operation)
-4. ? What are the minimum hardware requirements for each supported model? (2/6/8 GB RAM profiles)
-5. ? Should the app support multiple model profiles or just one default? (3 profiles: Fast/Recommended/Accurate)
+---
 
-## Documents Created/Updated
-| Document | Status | Location |
-|----------|--------|----------|
-| requirements-analysis.md | ? Complete | docs/ |
-| system-architecture.md | ? Enhanced | docs/architecture/ |
-| ollama-integration.md | ? Created | docs/api/ |
-| ui-specifications.md | ? Created | docs/user-guides/ |
-| testing.md | ? Created | docs/development/ |
-| setup.md | ? Created | docs/development/ |
-| build.md | ? Created | docs/development/ |
+### Phase 1: Backend Core - Ollama Management
+**Duration Estimate:** 4-6 hours  
+**Dependencies:** Phase 0  
+**Goal:** Implement Ollama lifecycle: detection, download, installation, process control
+
+#### Checklist
+- [ ] Define data models (OllamaStatus, InstallProgress, ModelProfile)
+- [ ] Implement `ollama_manager.rs` with core functions
+- [ ] Implement platform-specific Ollama downloaders (Windows .exe, macOS .tgz)
+- [ ] Implement HTTP client wrapper with retry logic
+- [ ] Implement process start/stop with port management
+- [ ] Expose Tauri commands for Ollama operations
+- [ ] Write unit tests for core functions
+
+#### Exit Criteria
+- [ ] `check_ollama_installed()` works correctly
+- [ ] Can download and install Ollama (or skip if exists)
+- [ ] Can start/stop Ollama on specified port
+- [ ] Ollama API responds to version check
+- [ ] All unit tests pass
+
+#### Files Created/Modified
+- `src-tauri/src/models/ollama.rs`
+- `src-tauri/src/models/app_state.rs`
+- `src-tauri/src/services/ollama_manager.rs`
+- `src-tauri/src/utils/http.rs`
+- `src-tauri/src/utils/paths.rs`
+- `src-tauri/src/commands/ollama.rs`
+
+---
+
+### Phase 2: Configuration Manager
+**Duration Estimate:** 3-4 hours  
+**Dependencies:** Phase 0  
+**Goal:** Implement Handy settings.json read/write with backup/restore
+
+#### Checklist
+- [ ] Define HandyConfig schema with all required fields
+- [ ] Implement config reader with JSON parsing
+- [ ] Implement config writer with atomic write (temp + rename)
+- [ ] Implement backup/restore functionality
+- [ ] Implement JSON merge logic (deep merge, preserve user settings)
+- [ ] Handle platform-specific paths (Windows %APPDATA%, macOS ~/Library)
+- [ ] Expose Tauri commands for config operations
+- [ ] Write unit tests for merge logic
+
+#### Exit Criteria
+- [ ] Can read Handy config from standard location
+- [ ] Can write config without losing existing fields
+- [ ] Backup created before every write
+- [ ] Restore from backup works
+- [ ] All unit tests pass
+
+#### Files Created/Modified
+- `src-tauri/src/models/config.rs`
+- `src-tauri/src/services/config_manager.rs`
+- `src-tauri/src/utils/paths.rs` (add Handy paths)
+- `src-tauri/src/commands/config.rs`
+
+---
+
+### Phase 3: Setup Wizard UI
+**Duration Estimate:** 4-6 hours  
+**Dependencies:** Phase 1, Phase 2  
+**Goal:** Build 3-step setup wizard with auto-advance logic
+
+#### Checklist
+- [x] Create Svelte stores (setupStep, ollamaStatus, installProgress, etc.)
+- [x] Build Step 1: Welcome + System Check UI
+- [x] Build Step 2: Ollama Installation UI (conditional display)
+- [x] Build Step 3: Model Selection with 3 profiles
+- [x] Implement auto-advance logic between steps
+- [x] Implement progress tracking for downloads
+- [x] Add "gray out unsuitable models" based on RAM
+- [x] Add troubleshooting button for manual setup
+- [x] Add success screen with "Open Handy" button
+
+#### Exit Criteria
+- [x] All 3 steps render correctly
+- [x] System check displays RAM/CPU info
+- [x] Auto-advance works after installation
+- [x] Model selection shows correct info (size, RAM, speed)
+- [x] Can complete full wizard flow
+
+#### Files Created/Modified
+- `src/lib/stores.ts`
+- `src/lib/api.ts`
+- `src/routes/+page.svelte` (main wizard)
+- `src/lib/components/SystemCheck.svelte`
+- `src/lib/components/ModelSelector.svelte`
+- `src/lib/components/ProgressBar.svelte`
+
+---
+
+### Phase 4: Status Dashboard UI
+**Duration Estimate:** 3-4 hours  
+**Dependencies:** Phase 1, Phase 2  
+**Goal:** Build post-setup dashboard with Ollama status and controls
+
+#### Checklist
+- [x] Create status route and layout
+- [x] Implement status polling (every 5 seconds)
+- [x] Build status card with current model info
+- [x] Add Start/Stop Ollama buttons
+- [x] Add Test Connection button
+- [x] Add Switch Model button (link to wizard Step 3)
+- [x] Add View Logs button
+- [x] Implement real-time status indicator
+
+#### Exit Criteria
+- [x] Dashboard shows current Ollama status
+- [x] Status updates when Ollama starts/stops
+- [x] Test connection shows response time
+- [x] Can navigate to model switcher
+- [x] All buttons have loading states
+
+#### Files Created/Modified
+- `src/routes/status/+page.svelte`
+- `src/lib/components/StatusCard.svelte`
+- `src/lib/components/ActionButton.svelte`
+
+---
+
+### Phase 5: System Tray & Background Operation
+**Duration Estimate:** 2-3 hours  
+**Dependencies:** Phase 1  
+**Goal:** Implement system tray with menu and background Ollama management
+
+#### Checklist
+- [x] Configure Tauri system tray in `tauri.conf.json`
+- [x] Create tray menu (Show, Status, Separator, Quit)
+- [x] Handle tray left-click (show/hide window)
+- [x] Handle menu item clicks
+- [x] Implement background Ollama monitoring
+- [x] Auto-restart Ollama if it crashes
+- [ ] Update tray icon based on status (optional)
+- [x] Ensure close button hides to tray, not quit
+
+#### Exit Criteria
+- [x] Tray icon appears on startup
+- [x] Close window keeps app running
+- [x] Tray menu works
+- [x] Quit from tray stops Ollama and exits
+- [x] Ollama persists when window hidden
+
+#### Files Created/Modified
+- `src-tauri/src/main.rs` (tray setup)
+- `src-tauri/tauri.conf.json` (tray config)
+- `src-tauri/src/tray.rs` (tray module)
+
+---
+
+### Phase 6: Testing & Debugging Framework
+**Duration Estimate:** 3-4 hours  
+**Dependencies:** All previous phases  
+**Goal:** Comprehensive test suite and debugging tools
+
+#### Checklist
+- [x] Write unit tests for config merge logic
+- [x] Write unit tests for model profile selection
+- [x] Write unit tests for path utilities
+- [x] Set up logging with `log` crate and `fern`
+- [x] Implement log file rotation
+- [x] Create debug panel (troubleshooting mode)
+- [x] Add manual E2E test checklist
+- [x] Document all test commands
+
+#### Exit Criteria
+- [ ] `cargo test` passes all tests
+- [ ] Logs write to correct location
+- [ ] Debug panel accessible via hidden trigger
+- [ ] E2E checklist covers all user flows
+
+#### Files Created/Modified
+- `src-tauri/src/tests/` (test modules)
+- `src-tauri/src/utils/logging.rs`
+- `src/lib/components/DebugPanel.svelte`
+- `TESTING.md` (E2E checklist)
+
+---
+
+### Phase 7: Build & Package
+**Duration Estimate:** 2-3 hours  
+**Dependencies:** All previous phases  
+**Goal:** Production builds for Windows and macOS
+
+#### Checklist
+- [ ] Configure Tauri bundle settings (msi, dmg)
+- [ ] Build Windows x64 installer
+- [ ] Build macOS Intel installer
+- [ ] Build macOS ARM installer
+- [ ] Create universal macOS binary (optional)
+- [ ] Test installers on clean VMs
+- [ ] Set up GitHub Actions CI/CD (optional)
+- [ ] Configure auto-updater (optional)
+
+#### Exit Criteria
+- [ ] MSI installs and runs on Windows
+- [ ] DMG mounts and runs on macOS Intel
+- [ ] DMG mounts and runs on macOS ARM
+- [ ] No antivirus false positives
+- [ ] Smoke tests pass on each platform
+
+#### Files Created/Modified
+- `src-tauri/tauri.conf.json` (bundle config)
+- `.github/workflows/build.yml` (CI/CD)
+- `build/` (output directory)
+
+---
+
+## Errors Encountered Log
+
+| Phase | Error | Attempt | Resolution | Status |
+|-------|-------|---------|------------|--------|
+| | | | | |
+
+---
 
 ## Decisions Made
-| Decision | Rationale |
-|----------|-----------|
-| Tauri over Electron | Smaller bundle size, native performance per architecture doc |
-| Svelte for frontend | Minimal runtime, compiled output per architecture doc |
-| User-local Ollama install | No admin privileges required, self-contained per philosophy |
-| OpenAI-compatible API | Handy uses OpenAI SDK; Ollama provides /v1 compatibility |
-| System tray integration | Background operation, native utility feel per Q7 |
-| Outcome-based model names | Hide complexity: Fast/Recommended/Accurate instead of technical names |
-| Auto-advance wizard | Minimal human intervention per Q1 |
 
-## Summary
-All documentation phases complete. The project is ready for implementation.
+| Decision | Rationale | Date |
+|----------|-----------|------|
+| Implement Ollama model listing/download via HTTP API before installer work | Matches the requirements to use Ollama's REST API directly and unblocks later wizard/dashboard phases that need model visibility | 2026-03-18 |
+| Refactor to a shared retrying HTTP client before installer work | Consolidates version/model/pull network behavior and reduces duplicated reqwest setup before adding more Ollama API calls | 2026-03-18 |
+| Use Ollama's current official download assets (`OllamaSetup.exe`, `Ollama.dmg`) instead of the older `.tgz` assumption | Aligns the backend with the current Ollama download pages and keeps platform installer logic accurate to the current distribution format | 2026-03-18 |
+| Preserve unknown Handy config JSON with `serde(flatten)` before expanding config write paths | Prevents the launcher from silently deleting unrelated Handy settings when it rewrites `settings_store.json` during setup | 2026-03-18 |
+| Switch Handy configuration writes to raw JSON mutation instead of the placeholder typed provider model | The documented Handy schema uses `custom`, `base_url`, and prompt structures that may be object- or array-shaped, so configuration must patch the real JSON shape directly | 2026-03-18 |
+| Use a direct `open_ollama_download_page` fallback instead of a dead-end troubleshooting placeholder in the setup wizard | Gives the incomplete installer state a real manual recovery path while keeping troubleshooting/log access in the launcher-owned data directory | 2026-03-18 |
+| Defer Ollama auto-restart until after the minimal tray lifecycle is stable | Keeps Phase 5 focused on a safe tray/hide-to-background slice before introducing background restart coordination | 2026-03-18 |
+| Supervise only launcher-managed Ollama processes with a generation-based runtime token | Prevents the background monitor from restarting externally managed or explicitly stopped Ollama instances while still allowing automatic recovery after launcher-started crashes | 2026-03-17 |
+| Use the launcher-owned data directory for backend logs with startup rotation | Keeps diagnostics alongside retained backups/downloads and satisfies the 10 MB / 5-file retention requirement without introducing a separate storage location | 2026-03-17 |
+| | | |
 
-**Total documents created:** 7
-**Total lines of documentation:** ~3,500+
-**Coverage:** Requirements, Architecture, API, UI/UX, Testing, Setup, Build
+---
+
+## Session History Summary
+
+| Date | Phase | Work Done | Status |
+|------|-------|-----------|--------|
+| 2026-03-17 | 0 | Created implementation plan and documentation | In Progress |
+| 2026-03-17 | 5 | Added managed Ollama background monitoring and auto-restart supervision | Completed |
+| 2026-03-17 | 6 | Added backend logging, test command documentation, and path/log rotation coverage | In Progress |
+| 2026-03-17 | 6 | Added hidden-trigger debug panel with live log tail and raw state view | In Progress |

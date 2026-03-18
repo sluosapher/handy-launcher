@@ -1,0 +1,40 @@
+{
+  "package": {
+    "productName": "Handy Launcher",
+    "version": "0.1.0"
+  },
+  "build": {
+    "beforeDevCommand": "bunx --bun vite dev --port 1420 --strictPort",
+    "devPath": "http://localhost:1420"
+  },
+  "tauri": {
+    "bundle": {
+      "active": false,
+      "targets": ["msi", "dmg"],
+      "identifier": "com.pais.handy-launcher"
+    },
+    "allowlist": {
+      "shell": {
+        "all": true
+      },
+      "fs": {
+        "all": true
+      },
+      "os": {
+        "all": true
+      }
+    },
+    "systemTray": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true
+    },
+    "windows": [
+      {
+        "title": "Handy Launcher",
+        "width": 960,
+        "height": 640,
+        "resizable": true
+      }
+    ]
+  }
+}

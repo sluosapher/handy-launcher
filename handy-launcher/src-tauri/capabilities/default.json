@@ -1,0 +1,12 @@
+{
+  "shell": {
+    "allowExecute": true
+  },
+  "fs": {
+    "allowRead": true,
+    "allowWrite": true
+  },
+  "os": {
+    "allowPlatform": true
+  }
+}

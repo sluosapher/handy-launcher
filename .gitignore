@@ -140,3 +140,9 @@ vite.config.ts.timestamp-*
 
 # Local git worktrees
 .worktrees/
+
+# Tauri / Rust build output
+handy-launcher/src-tauri/target/
+
+# Local frontend build cache
+handy-launcher/.svelte-kit/
